@@ -32,10 +32,29 @@ secrecy = { version = "0.8", features = ["serde"] } # specifies which fields sho
 tracing-actix-web = "0.5"
 # handle integer parsing
 serde-aux="3"
+# handle grapheme length
+unicode-segmentation = "1"
+# email validator
+validator = "0.14"
+# to talk to REST API
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
+
 
 
 [dev-dependencies]
-reqwest= "0.11"
+# better error messages, especially with Option and Result
+claim = "0.5"
+# generate random valid emails
+fake = "~2.3"
+# property based testing, primarily for email validation
+quickcheck = "0.9.2"
+quickcheck_macros = "0.9.1"
+# testing http requests
+tokio = { version = "1", features = ["rt", "macros"] }
+wiremock ="0.5"
+# json deserialization
+serde_json = "1"
+
 
 [dependencies.sqlx]
 version = "0.5.7"
