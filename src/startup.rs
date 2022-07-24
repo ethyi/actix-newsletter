@@ -2,6 +2,7 @@ use std::net::TcpListener;
 
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::email_client::EmailClient;
+use crate::routes::confirm;
 use crate::routes::{health_check, subscribe};
 use actix_web::dev::Server;
 use actix_web::web::Data;
@@ -37,7 +38,12 @@ impl Application {
             timeout,
         );
         let port = listener.local_addr().unwrap().port();
-        let server = run(listener, connection_pool, email_client)?;
+        let server = run(
+            listener,
+            connection_pool,
+            email_client,
+            configuration.application.base_url,
+        )?;
         Ok(Self { port, server })
     }
     pub fn port(&self) -> u16 {
@@ -54,23 +60,28 @@ pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
         .connect_lazy_with(configuration.with_db())
 }
 
-// We need to mark `run` as public.
-// It is no longer a binary entrypoint, therefore we can mark it as async
-// without having to use any proc-macro incantation.
+// wrapper required to extract data in handlers
+pub struct ApplicationBaseUrl(pub String);
+
+// spins up entire server
 pub fn run(
     listener: TcpListener,
     db_pool: PgPool,
     email_client: EmailClient,
+    base_url: String,
 ) -> Result<Server, std::io::Error> {
     let db_pool = Data::new(db_pool); // Arc over db connection
     let email_client = Data::new(email_client); // Arc over client connection
+    let base_url = Data::new(ApplicationBaseUrl(base_url)); // arc over base url
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default()) // middle ware added with wrap, emits log record at every request
             .route("/health_check", web::get().to(health_check))
             .route("/subscriptions", web::post().to(subscribe))
+            .route("/subscriptions/confirm", web::get().to(confirm))
             .app_data(db_pool.clone())
             .app_data(email_client.clone())
+            .app_data(base_url.clone())
     })
     .listen(listener)?
     .run();

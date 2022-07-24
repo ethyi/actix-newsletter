@@ -28,12 +28,13 @@ impl EmailClientSettings {
     }
 }
 
-// group detials regarding the app_address
+// group detials regarding the app_address, set by spec.yaml by Digital ocean
 #[derive(serde::Deserialize, Clone)]
 pub struct ApplicationSettings {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub host: String,
+    pub base_url: String,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
