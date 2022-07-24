@@ -40,6 +40,10 @@ validator = "0.14"
 reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
 # generate tokens
 rand = { version = "0.8", features=["std_rng"] }
+# dynamic errors
+thiserror = "1"
+anyhow = "1"
+
 
 
 
